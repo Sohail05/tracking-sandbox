@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta Pixel test bench</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Meta Pixel base code -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;t.onload=function(){window.__pixelScript='loaded'};
+t.onerror=function(){window.__pixelScript='blocked'};
+s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+// This sandbox fires PageView itself on every funnel step, so turn off automatic SPA PageViews
+fbq.disablePushState = true;
+fbq.allowDuplicatePageViews = true;
+fbq('init', '1685872372690552');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1685872372690552&ev=PageView&noscript=1"></noscript>
+<!-- End Meta Pixel base code -->
+
+<style>
+:root{
+  --bg:#EDF0F4; --panel:#FFFFFF; --ink:#18212E; --muted:#5A6577; --line:#D3D9E2;
+  --blue:#2350E8; --blue-soft:#E4EBFF; --ok:#0E7A55; --ok-soft:#DDF3EA; --warn:#A55E00; --warn-soft:#FBEED9;
+  --bad:#B42318; --bad-soft:#FCE4E2; --console:#1A2230; --console-ink:#D7DEEA;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}
+h1{font-size:26px;font-weight:600;margin:0;letter-spacing:-.01em}
+h1 small{display:block;font-size:14px;font-weight:400;color:var(--muted);margin-top:4px;letter-spacing:0}
+h2{font-size:17px;font-weight:600;margin:0 0 4px}
+.hint{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.status{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:13px;background:var(--panel);border:1px solid var(--line)}
+.chip b{font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.chip.ok .dot{background:var(--ok)} .chip.bad .dot{background:var(--bad)} .chip.warn .dot{background:var(--warn)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:20px;align-items:start}
+@media(max-width:960px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;margin-bottom:20px}
+/* funnel */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.steps button{border:0;border-right:1px solid var(--line);background:#F7F9FB;padding:10px 8px;cursor:pointer;text-align:left;font-size:13px;color:var(--muted)}
+.steps button:last-child{border-right:0}
+.steps button span{display:block;font-size:12px}
+.steps button strong{font-weight:500;color:var(--ink)}
+.steps button[aria-current="step"]{background:var(--blue-soft);box-shadow:inset 0 -3px 0 var(--blue)}
+@media(max-width:560px){.steps{grid-template-columns:repeat(2,1fr)}.steps button:nth-child(2){border-right:0}.steps button:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+.stage{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:16px;border-radius:8px;background:#F7F9FB;border:1px dashed var(--line)}
+.product-art{width:96px;height:96px;border-radius:8px;background:repeating-linear-gradient(45deg,#C9D4F7 0 8px,#DCE4FB 8px 16px);flex:none}
+.stage .info{flex:1;min-width:200px}
+.stage .info p{margin:2px 0;color:var(--muted);font-size:14px}
+.stage .info .title{color:var(--ink);font-weight:500;font-size:16px}
+.fires{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:10px}
+/* forms */
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#FBFCFD}
+textarea{font-family:var(--mono);font-size:13px;min-height:64px;resize:vertical}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:6px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-weight:500;cursor:pointer}
+.btn:hover{background:#1A3FC0}
+.btn.ghost{background:transparent;color:var(--blue)}
+.btn.ghost:hover{background:var(--blue-soft)}
+.btn.small{padding:6px 11px;font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.quick button{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:#FBFCFD;font-size:13px;cursor:pointer}
+.quick button:hover{border-color:var(--blue);color:var(--blue)}
+details{border-top:1px solid var(--line);padding-top:12px;margin-top:14px}
+summary{cursor:pointer;font-weight:500;font-size:14px}
+/* console */
+.console{position:sticky;top:16px;background:var(--console);color:var(--console-ink);border-radius:10px;overflow:hidden}
+.console-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #2C3647}
+.console-head h2{color:#fff;font-size:15px;margin:0}
+.console-head .actions button{background:transparent;border:1px solid #3A4659;color:var(--console-ink);border-radius:5px;padding:4px 9px;font-size:12px;cursor:pointer}
+.console-head .actions button:hover{border-color:#7C8BA3}
+#log{max-height:calc(100vh - 140px);min-height:280px;overflow:auto;padding:6px 0;font-family:var(--mono);font-size:12.5px}
+.entry{padding:10px 16px;border-bottom:1px solid #263041}
+.entry.new{animation:flash 1.2s ease-out}
+@keyframes flash{from{background:#25385E}to{background:transparent}}
+@media(prefers-reduced-motion:reduce){.entry.new{animation:none}}
+.entry .top{display:flex;justify-content:space-between;gap:8px}
+.entry .ev{color:#fff;font-weight:500}
+.entry .time{color:#7C8BA3}
+.entry pre{margin:6px 0 0;white-space:pre-wrap;word-break:break-all;color:#AEB9CC}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid #3A4659;color:#AEB9CC;margin-left:6px}
+.tag.sent{border-color:#2E8F6A;color:#7FE0B7}
+.tag.fail{border-color:#B44;color:#F4A3A3}
+.empty{padding:28px 16px;color:#7C8BA3;font-family:var(--sans);font-size:14px}
+.help ol{margin:8px 0 0;padding-left:20px;color:var(--muted);font-size:14px}
+.help li{margin-bottom:6px}
+code{font-family:var(--mono);font-size:.9em;background:#EEF1F6;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Meta Pixel test bench<small>Pixel ID 1685872372690552. Every action here sends a real event to your dataset.</small></h1>
+    <div class="status" aria-live="polite">
+      <span class="chip" id="st-script"><span class="dot"></span>Pixel script: <b>checking…</b></span>
+      <span class="chip" id="st-fbp"><span class="dot"></span>_fbp: <b>—</b></span>
+      <span class="chip" id="st-fbc"><span class="dot"></span>_fbc: <b>—</b></span>
+      <span class="chip" id="st-consent"><span class="dot"></span>Consent: <b>granted</b></span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <main>
+      <!-- Funnel -->
+      <section class="panel" aria-labelledby="funnel-h">
+        <h2 id="funnel-h">Walk the funnel</h2>
+        <p class="hint">Each step changes the URL (<code>?step=…</code>) and fires a PageView plus the matching standard event, so you can also test URL-based custom conversions.</p>
+        <nav class="steps" aria-label="Funnel steps">
+          <button data-step="product"><span>Step 1</span><strong>Product</strong></button>
+          <button data-step="cart"><span>Step 2</span><strong>Cart</strong></button>
+          <button data-step="checkout"><span>Step 3</span><strong>Checkout</strong></button>
+          <button data-step="thank-you"><span>Step 4</span><strong>Thank you</strong></button>
+        </nav>
+        <div class="stage" id="stage"></div>
+        <div class="row" style="margin-top:14px">
+          <div><label for="price">Product price</label><input id="price" type="number" step="0.01" value="49.99"></div>
+          <div><label for="qty">Quantity</label><input id="qty" type="number" min="1" value="1"></div>
+          <div><label for="cur">Currency</label>
+            <select id="cur"><option>CAD</option><option>USD</option><option>EUR</option><option>GBP</option><option>AUD</option></select></div>
+        </div>
+      </section>
+
+      <!-- Manual events -->
+      <section class="panel" aria-labelledby="manual-h">
+        <h2 id="manual-h">Fire any event</h2>
+        <p class="hint">One click sends a standard event with the parameters below.</p>
+        <div class="quick" id="quick"></div>
+        <details>
+          <summary>Custom parameters and event ID</summary>
+          <div class="row" style="margin-top:12px">
+            <div><label for="m-value">value</label><input id="m-value" type="number" step="0.01" value="25"></div>
+            <div><label for="m-name">content_name</label><input id="m-name" value="Test item"></div>
+            <div><label for="m-ids">content_ids (comma separated)</label><input id="m-ids" value="SKU-001"></div>
+          </div>
+          <label for="m-extra">Extra parameters (JSON, merged in)</label>
+          <textarea id="m-extra">{"content_type":"product"}</textarea>
+          <label style="margin-top:10px;display:flex;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="m-eid" checked style="width:auto"> Attach a unique event ID (needed to test deduplication with Conversions API)</label>
+        </details>
+        <details>
+          <summary>Custom event (trackCustom)</summary>
+          <div class="row" style="margin-top:12px">
+            <div><label for="c-name">Event name</label><input id="c-name" value="QuizCompleted"></div>
+            <div><label for="c-params">Parameters (JSON)</label><input id="c-params" value='{"score":8,"quiz":"style"}'></div>
+          </div>
+          <button class="btn small" id="c-fire">Send custom event</button>
+        </details>
+      </section>
+
+      <!-- Lead form -->
+      <section class="panel" aria-labelledby="lead-h">
+        <h2 id="lead-h">Lead form with advanced matching</h2>
+        <p class="hint">Submitting re-initializes the pixel with this contact info (the pixel hashes it in the browser) and fires Lead. Watch Event Match Quality improve in Events Manager.</p>
+        <form id="lead">
+          <div class="row">
+            <div><label for="l-fn">First name</label><input id="l-fn" autocomplete="given-name" value="Test"></div>
+            <div><label for="l-em">Email</label><input id="l-em" type="email" autocomplete="email" value="test@example.com"></div>
+            <div><label for="l-ph">Phone (with country code)</label><input id="l-ph" autocomplete="tel" value="15145550100"></div>
+          </div>
+          <button class="btn" type="submit">Submit lead</button>
+        </form>
+      </section>
+
+      <!-- Tools -->
+      <section class="panel" aria-labelledby="tools-h">
+        <h2 id="tools-h">Attribution and consent tools</h2>
+        <p class="hint">Simulate an ad click to create the <code>_fbc</code> cookie, or test how the pixel behaves when consent is withdrawn.</p>
+        <div class="actions">
+          <button class="btn ghost" id="sim-click">Simulate Meta ad click (adds fbclid)</button>
+          <button class="btn ghost" id="revoke">Revoke consent</button>
+          <button class="btn ghost" id="grant">Grant consent</button>
+          <button class="btn ghost" id="clear-cookies">Clear _fbp / _fbc cookies</button>
+        </div>
+      </section>
+
+      <section class="panel help" aria-labelledby="help-h">
+        <h2 id="help-h">How to verify events reached Meta</h2>
+        <ol>
+          <li>Install the <strong>Meta Pixel Helper</strong> Chrome extension; it lists every event this page fires.</li>
+          <li>In Events Manager, open your dataset, go to <strong>Test events</strong>, enter this page's URL and click "Open website". Events appear there live within seconds.</li>
+          <li>The <span class="tag sent" style="margin:0">network ✓</span> badge in the log means the browser actually sent the request to facebook.com. If you never see it, an ad blocker or privacy setting is stopping the pixel.</li>
+          <li>If Events Manager has <strong>traffic permissions</strong> (an allow list) turned on, add your <code>github.io</code> domain or events will be rejected.</li>
+        </ol>
+      </section>
+    </main>
+
+    <aside class="console" aria-labelledby="log-h">
+      <div class="console-head">
+        <h2 id="log-h">Event log</h2>
+        <div class="actions"><button id="copy-log">Copy</button><button id="clear-log">Clear</button></div>
+      </div>
+      <div id="log" aria-live="polite"><div class="empty">No events yet. Pick a funnel step or fire an event.</div></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const PIXEL_ID = '1685872372690552';
+const $ = s => document.querySelector(s);
+const logEl = $('#log');
+const entries = [];
+const pending = []; // entries waiting for network confirmation
+
+/* ---------- helpers ---------- */
+const uid = () => 'evt_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+const getCookie = n => (document.cookie.match('(^|;)\\s*' + n + '=([^;]*)') || [])[2] || '';
+const money = n => Math.round(n * 100) / 100;
+function parseJSON(txt) {
+  if (!txt.trim()) return {};
+  try { return JSON.parse(txt); } catch (e) { alert('That JSON is not valid: ' + e.message); return null; }
+}
+
+/* ---------- log ---------- */
+function addLog(method, name, params, eventID) {
+  const e = { time: new Date().toLocaleTimeString(), method, name, params, eventID, sent: false };
+  entries.unshift(e);
+  if (logEl.querySelector('.empty')) logEl.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'entry new';
+  const body = { ...params };
+  if (eventID) body.eventID = eventID;
+  div.innerHTML = `<div class="top"><span><span class="ev"></span><span class="tag">${method}</span><span class="tag net">waiting</span></span><span class="time">${e.time}</span></div><pre></pre>`;
+  div.querySelector('.ev').textContent = name;
+  div.querySelector('pre').textContent = Object.keys(body).length ? JSON.stringify(body, null, 2) : '(no parameters)';
+  logEl.prepend(div);
+  e.el = div;
+  if (method !== 'consent' && method !== 'init') {
+    pending.push(e);
+    setTimeout(() => { if (!e.sent) { const t = div.querySelector('.net'); t.textContent = 'not seen'; t.classList.add('fail'); } }, 6000);
+  } else {
+    div.querySelector('.net').remove();
+  }
+}
+
+/* Confirm real network requests to facebook.com/tr */
+if ('PerformanceObserver' in window) {
+  try {
+    new PerformanceObserver(list => {
+      list.getEntries().forEach(r => {
+        if (!/facebook\.com\/tr/.test(r.name)) return;
+        let u; try { u = new URL(r.name); } catch { return; }
+        const ev = u.searchParams.get('ev'), eid = u.searchParams.get('eid');
+        const match = pending.find(p => !p.sent && p.name === ev && (!p.eventID || !eid || p.eventID === eid));
+        if (match) {
+          match.sent = true;
+          const t = match.el.querySelector('.net');
+          t.textContent = 'network ✓'; t.classList.remove('fail'); t.classList.add('sent');
+        }
+      });
+    }).observe({ type: 'resource', buffered: true });
+  } catch (e) {}
+}
+
+/* ---------- firing ---------- */
+function track(name, params = {}, withId = true) {
+  const eventID = withId ? uid() : undefined;
+  if (eventID) fbq('track', name, params, { eventID });
+  else fbq('track', name, params);
+  addLog('track', name, params, eventID);
+}
+function trackCustom(name, params = {}) {
+  const eventID = uid();
+  fbq('trackCustom', name, params, { eventID });
+  addLog('trackCustom', name, params, eventID);
+}
+
+/* ---------- funnel ---------- */
+const STEPS = {
+  'product':   { title: 'Product page',     event: 'ViewContent',      desc: 'Visitor views a product.' },
+  'cart':      { title: 'Cart',             event: 'AddToCart',        desc: 'Product added to cart.' },
+  'checkout':  { title: 'Checkout',         event: 'InitiateCheckout', desc: 'Visitor starts checkout.' },
+  'thank-you': { title: 'Order confirmed',  event: 'Purchase',         desc: 'Order placed. This is the conversion.' }
+};
+function cartParams() {
+  const price = parseFloat($('#price').value) || 0, qty = parseInt($('#qty').value) || 1;
+  return {
+    value: money(price * qty), currency: $('#cur').value,
+    content_ids: ['SKU-001'], content_name: 'Test product', content_type: 'product',
+    contents: [{ id: 'SKU-001', quantity: qty, item_price: price }], num_items: qty
+  };
+}
+function renderStage(step) {
+  const s = STEPS[step];
+  document.querySelectorAll('.steps button').forEach(b => {
+    if (b.dataset.step === step) b.setAttribute('aria-current', 'step');
+    else b.removeAttribute('aria-current');
+  });
+  const p = cartParams();
+  const next = { product: ['cart', 'Add to cart'], cart: ['checkout', 'Go to checkout'], checkout: ['thank-you', 'Place order'], 'thank-you': ['product', 'Start again'] }[step];
+  $('#stage').innerHTML = `
+    <div class="product-art" aria-hidden="true"></div>
+    <div class="info">
+      <p class="title">${s.title}</p>
+      <p>${s.desc} Total: ${p.value.toFixed(2)} ${p.currency}</p>
+      <div class="fires">Fired: PageView + ${s.event}</div>
+    </div>
+    <button class="btn" id="next">${next[1]}</button>`;
+  $('#next').onclick = () => goStep(next[0]);
+}
+function fireStep(step) {
+  track('PageView', {}, false);
+  const s = STEPS[step], p = cartParams();
+  if (step === 'thank-you') p.order_id = 'TEST-' + Date.now().toString().slice(-6);
+  track(s.event, p);
+}
+function goStep(step) {
+  const url = new URL(location.href);
+  url.searchParams.set('step', step);
+  history.pushState({ step }, '', url);
+  renderStage(step); fireStep(step);
+}
+document.querySelectorAll('.steps button').forEach(b => b.onclick = () => goStep(b.dataset.step));
+window.addEventListener('popstate', () => {
+  const step = new URL(location.href).searchParams.get('step') || 'product';
+  renderStage(step); fireStep(step);
+});
+
+/* ---------- quick events ---------- */
+const STANDARD = ['ViewContent','Search','AddToCart','AddToWishlist','InitiateCheckout','AddPaymentInfo','Purchase','Lead','CompleteRegistration','Contact','Schedule','StartTrial','Subscribe','SubmitApplication','FindLocation','CustomizeProduct','Donate'];
+STANDARD.forEach(name => {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.onclick = () => {
+    const extra = parseJSON($('#m-extra').value); if (extra === null) return;
+    const params = {
+      value: money(parseFloat($('#m-value').value) || 0), currency: $('#cur').value,
+      content_name: $('#m-name').value,
+      content_ids: $('#m-ids').value.split(',').map(s => s.trim()).filter(Boolean),
+      ...extra
+    };
+    if (name === 'Search') params.search_string = 'test search';
+    track(name, params, $('#m-eid').checked);
+  };
+  $('#quick').appendChild(b);
+});
+$('#c-fire').onclick = () => {
+  const name = $('#c-name').value.trim();
+  if (!name) return alert('Give the custom event a name.');
+  const params = parseJSON($('#c-params').value); if (params === null) return;
+  trackCustom(name, params);
+};
+
+/* ---------- lead form ---------- */
+$('#lead').addEventListener('submit', ev => {
+  ev.preventDefault();
+  const ud = { fn: $('#l-fn').value.trim().toLowerCase(), em: $('#l-em').value.trim().toLowerCase(), ph: $('#l-ph').value.replace(/\D/g, '') };
+  fbq('init', PIXEL_ID, ud);
+  addLog('init', 'Advanced matching', { fn: ud.fn, em: ud.em, ph: ud.ph, note: 'hashed by the pixel before sending' });
+  track('Lead', { content_name: 'Sandbox lead form', value: 0, currency: $('#cur').value });
+});
+
+/* ---------- tools ---------- */
+$('#sim-click').onclick = () => {
+  const url = new URL(location.href);
+  url.searchParams.set('fbclid', 'IwAR_sandbox_' + Math.random().toString(36).slice(2, 12));
+  location.href = url.toString();
+};
+function setConsent(state) {
+  fbq('consent', state);
+  addLog('consent', 'Consent ' + state, {});
+  const c = $('#st-consent');
+  c.className = 'chip ' + (state === 'grant' ? 'ok' : 'warn');
+  c.querySelector('b').textContent = state === 'grant' ? 'granted' : 'revoked (events held)';
+}
+$('#revoke').onclick = () => setConsent('revoke');
+$('#grant').onclick = () => setConsent('grant');
+$('#clear-cookies').onclick = () => {
+  ['_fbp', '_fbc'].forEach(n => {
+    document.cookie = n + '=; Max-Age=0; path=/';
+    document.cookie = n + '=; Max-Age=0; path=/; domain=.' + location.hostname;
+  });
+  updateStatus();
+};
+
+/* ---------- log actions ---------- */
+$('#clear-log').onclick = () => { entries.length = 0; pending.length = 0; logEl.innerHTML = '<div class="empty">Log cleared.</div>'; };
+$('#copy-log').onclick = async () => {
+  const text = JSON.stringify(entries.map(({ el, ...rest }) => rest), null, 2);
+  try { await navigator.clipboard.writeText(text); $('#copy-log').textContent = 'Copied'; }
+  catch { $('#copy-log').textContent = 'Copy failed'; }
+  setTimeout(() => $('#copy-log').textContent = 'Copy', 1500);
+};
+
+/* ---------- status chips ---------- */
+function chip(id, state, text) { const c = $(id); c.className = 'chip ' + state; c.querySelector('b').textContent = text; }
+function updateStatus() {
+  const s = window.__pixelScript;
+  if (s === 'loaded') chip('#st-script', 'ok', 'loaded');
+  else if (s === 'blocked') chip('#st-script', 'bad', 'blocked (ad blocker?)');
+  else chip('#st-script', 'warn', 'loading…');
+  const fbp = getCookie('_fbp'), fbc = getCookie('_fbc');
+  chip('#st-fbp', fbp ? 'ok' : 'warn', fbp ? fbp.slice(0, 22) + '…' : 'not set yet');
+  chip('#st-fbc', fbc ? 'ok' : '', fbc ? 'set from ad click' : 'none (no ad click)');
+}
+setInterval(updateStatus, 1500);
+
+/* ---------- start ---------- */
+const startStep = new URL(location.href).searchParams.get('step');
+const initial = STEPS[startStep] ? startStep : 'product';
+renderStage(initial);
+fireStep(initial);
+updateStatus();
+</script>
+</body>
+</html>
